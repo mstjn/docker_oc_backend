@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mongod --version)",
+      "Bash(mongosh --version)",
+      "Bash(winget --version)",
+      "Bash(choco --version)",
+      "PowerShell(winget *)"
+    ]
+  }
+}
