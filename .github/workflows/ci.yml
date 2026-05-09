@@ -9,7 +9,7 @@ on:
 permissions:
   contents: read
   checks: write
-  packages: write  
+  packages: write
 
 jobs:
   test:
@@ -44,7 +44,7 @@ jobs:
   build:
     name: Build & Push image Docker
     runs-on: ubuntu-latest
-    needs: test 
+    needs: test
 
     steps:
       - name: Récupérer le code
@@ -67,3 +67,56 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/${{ github.repository }}:${{ steps.tag.outputs.value }}
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'  # uniquement sur main, pas sur les PR
+
+    permissions:
+      contents: write  # nécessaire pour créer les releases GitHub
+      packages: write
+
+    steps:
+      - name: Récupérer le code (historique complet)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # semantic-release a besoin de tout l'historique git
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Installer semantic-release
+        run: npm install --no-save semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/github
+
+      - name: Mémoriser le dernier tag existant
+        id: before
+        run: echo "tag=$(git tag --sort=-version:refname | head -1)" >> $GITHUB_OUTPUT
+
+      - name: Créer la release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+
+      - name: Récupérer la version créée
+        id: version
+        run: |
+          git fetch --tags
+          LATEST=$(git tag --sort=-version:refname | head -1)
+          BEFORE="${{ steps.before.outputs.tag }}"
+          if [ "$LATEST" != "$BEFORE" ] && [ -n "$LATEST" ]; then
+            echo "number=${LATEST#v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Taguer l'image Docker avec la version sémantique
+        if: steps.version.outputs.number != ''
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          SHA="${GITHUB_SHA::7}"
+          VERSION="${{ steps.version.outputs.number }}"
+          docker pull ghcr.io/${{ github.repository }}:${{ github.ref_name }}-$SHA
+          docker tag ghcr.io/${{ github.repository }}:${{ github.ref_name }}-$SHA ghcr.io/${{ github.repository }}:$VERSION
+          docker push ghcr.io/${{ github.repository }}:$VERSION
