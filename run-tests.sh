@@ -1,11 +1,21 @@
-BACKEND_DIR="$(cd "$(dirname "$0")" && pwd)"
-FRONTEND_DIR="$(cd "$BACKEND_DIR/../LDJS-Front-end-Automatisez-les-tests-et-le-release-continus-avec-Docker" && pwd)"
-EXIT_CODE=0
+set -e
 
-echo "=== Backend ==="
-(cd "$BACKEND_DIR" && npm test) || EXIT_CODE=1
+rm -rf test-results
+mkdir -p test-results
 
-echo "=== Frontend ==="
-(cd "$FRONTEND_DIR" && npm test) || EXIT_CODE=1
+if [ ! -d "node_modules" ]; then
+  echo "node_modules absent — installation en cours..."
+  npm ci
+fi
 
-exit $EXIT_CODE
+if node -e "
+  const p = require('./package.json');
+  const deps = { ...p.dependencies, ...p.devDependencies };
+  process.exit(deps['react'] ? 0 : 1);
+" 2>/dev/null; then
+  echo "Projet détecté : React"
+  CI=true npm test
+else
+  echo "Projet détecté : Node / NestJS"
+  npm test
+fi

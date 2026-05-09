@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Lancer les tests
+        run: chmod +x run-tests.sh && ./run-tests.sh
+
+      - name: Publier le rapport de tests
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Rapport de tests
+          path: test-results/**/*.xml
+          reporter: java-junit
+          fail-on-error: true

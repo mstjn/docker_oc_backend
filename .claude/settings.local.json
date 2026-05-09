@@ -5,7 +5,13 @@
       "Bash(mongosh --version)",
       "Bash(winget --version)",
       "Bash(choco --version)",
-      "PowerShell(winget *)"
+      "PowerShell(winget *)",
+      "Bash(bash run-tests.sh)",
+      "PowerShell(bash \"C:\\\\Users\\\\Mateo\\\\OneDrive\\\\Documents\\\\Master OpenClassrooms\\\\P6 DOCKER\\\\LDJS-Back-end-Automatisez-les-tests-et-le-release-continus-avec-Docker\\\\run-tests.sh\" 2>&1)",
+      "PowerShell(Get-Command *)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe\" \"C:\\\\Users\\\\Mateo\\\\OneDrive\\\\Documents\\\\Master OpenClassrooms\\\\P6 DOCKER\\\\LDJS-Back-end-Automatisez-les-tests-et-le-release-continus-avec-Docker\\\\run-tests.sh\" 2>&1)",
+      "PowerShell(Get-Process *)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe\" -c 'ls \"/c/Users/Mateo/OneDrive/Documents/Master OpenClassrooms/P6 DOCKER/LDJS-Front-end-Automatisez-les-tests-et-le-release-continus-avec-Docker/node_modules/jest-junit\" 2>&1 | head -3; echo \"exit: $?\"')"
     ]
   }
 }
